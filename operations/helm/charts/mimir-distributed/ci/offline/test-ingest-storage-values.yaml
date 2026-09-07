@@ -5,6 +5,11 @@ kafka:
   enabled: true
   logRetentionHours: 48
 
+ingester:
+  zoneAwareReplication:
+    delayedDownscale:
+      enabled: true
+
 mimir:
   structuredConfig:
     ingest_storage:

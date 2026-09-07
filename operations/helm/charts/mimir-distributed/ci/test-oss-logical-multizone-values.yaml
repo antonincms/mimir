@@ -25,6 +25,9 @@ ingester:
     <<: *ci_resources
   persistentVolume:
     enabled: false
+  zoneAwareReplication:
+    delayedDownscale:
+      enabled: true
 
 store_gateway:
   resources:

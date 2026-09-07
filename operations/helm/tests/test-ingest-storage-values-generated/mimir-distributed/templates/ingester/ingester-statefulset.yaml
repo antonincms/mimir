@@ -14,11 +14,16 @@ metadata:
     rollout-group: ingester
     zone: zone-a
     grafana.com/prepare-downscale: "true"
-    grafana.com/min-time-between-zones-downscale: 12h
+    grafana.com/min-time-between-zones-downscale: 0
   annotations:
     rollout-max-unavailable: "50"
     grafana.com/prepare-downscale-http-path: ingester/prepare-shutdown
     grafana.com/prepare-downscale-http-port: "8080"
+    grafana.com/rollout-delayed-downscale: "13h"
+    grafana.com/rollout-prepare-delayed-downscale-url: http://pod/ingester/prepare-partition-downscale
+    grafana.com/rollout-mirror-replicas-from-resource-name: test-ingest-storage-values-mimir-ingester-zone-a
+    grafana.com/rollout-mirror-replicas-from-resource-kind: ReplicaTemplate
+    grafana.com/rollout-mirror-replicas-from-resource-api-version: rollout-operator.grafana.com/v1
   namespace: "citestns"
 spec:
   podManagementPolicy: Parallel
@@ -153,7 +158,7 @@ metadata:
     rollout-group: ingester
     zone: zone-b
     grafana.com/prepare-downscale: "true"
-    grafana.com/min-time-between-zones-downscale: 12h
+    grafana.com/min-time-between-zones-downscale: 0
   annotations:
     rollout-max-unavailable: "50"
     grafana.com/prepare-downscale-http-path: ingester/prepare-shutdown
@@ -293,12 +298,12 @@ metadata:
     rollout-group: ingester
     zone: zone-c
     grafana.com/prepare-downscale: "true"
-    grafana.com/min-time-between-zones-downscale: 12h
+    grafana.com/min-time-between-zones-downscale: 0
   annotations:
     rollout-max-unavailable: "50"
     grafana.com/prepare-downscale-http-path: ingester/prepare-shutdown
     grafana.com/prepare-downscale-http-port: "8080"
-    grafana.com/rollout-downscale-leader: test-ingest-storage-values-mimir-ingester-zone-b
+    grafana.com/rollout-downscale-leader: test-ingest-storage-values-mimir-ingester-zone-a
   namespace: "citestns"
 spec:
   podManagementPolicy: Parallel
