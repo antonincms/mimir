@@ -600,11 +600,16 @@ which allows us to keep generating everything for the default zone.
 {{- $zoneNames = append $zoneNames $rolloutZone.name -}}
 {{- end -}}
 {{- $sortedZoneNames := $zoneNames | sortAlpha -}}
+{{- $delayedDownscaleEnabled := and (eq $.component "ingester") (dig "delayedDownscale" "enabled" false $componentSection.zoneAwareReplication) -}}
+{{- $delayedDownscaleLeaderZone := index $sortedZoneNames 0 -}}
+{{- $delayedDownscaleLeaderName := include "mimir.resourceName" (dict "ctx" $.ctx "component" $.component "rolloutZoneName" $delayedDownscaleLeaderZone) -}}
 
 {{- range $idx, $rolloutZone := $componentSection.zoneAwareReplication.zones -}}
 {{- /* Determine downscaleLeader: prefer values.yaml setting, fallback to dynamic computation */ -}}
 {{- $downscaleLeader := $rolloutZone.downscaleLeader -}}
-{{- if and (not $downscaleLeader) (ne $.component "alertmanager") (gt (len $sortedZoneNames) 1) -}}
+{{- if and $delayedDownscaleEnabled $ingestStorageEnabled (ne $rolloutZone.name $delayedDownscaleLeaderZone) -}}
+{{- $downscaleLeader = $delayedDownscaleLeaderName -}}
+{{- else if and (not $delayedDownscaleEnabled) (not $downscaleLeader) (ne $.component "alertmanager") (gt (len $sortedZoneNames) 1) -}}
 {{- $currentZoneIdx := 0 -}}
 {{- range $i, $zoneName := $sortedZoneNames -}}
 {{- if eq $zoneName $rolloutZone.name -}}
@@ -626,7 +631,14 @@ which allows us to keep generating everything for the default zone.
   "noDownscale"  $rolloutZone.noDownscale
   "downscaleLeader" $downscaleLeader
   "prepareDownscale" $rolloutZone.prepareDownscale
-  "minTimeBetweenZonesDownscale" ($componentSection.zoneAwareReplication.minTimeBetweenZonesDownscale | default "")
+  "delayedDownscale" (and $delayedDownscaleEnabled (or (not $ingestStorageEnabled) (eq $rolloutZone.name $delayedDownscaleLeaderZone)))
+  "delayedDownscaleMirrorsReplicas" (and $delayedDownscaleEnabled (or (not $ingestStorageEnabled) (eq $rolloutZone.name $delayedDownscaleLeaderZone)))
+  "delayedDownscaleLeader" (and $delayedDownscaleEnabled (eq $rolloutZone.name $delayedDownscaleLeaderZone))
+  "delayedDownscaleReplicaTemplateName" $delayedDownscaleLeaderName
+  "delayedDownscaleDisableWriteBack" (and $delayedDownscaleEnabled (not $ingestStorageEnabled) (ne $rolloutZone.name $delayedDownscaleLeaderZone))
+  "delayedDownscaleDelay" (dig "delayedDownscale" "delay" "" $componentSection.zoneAwareReplication)
+  "delayedDownscalePrepareURL" (ternary "http://pod/ingester/prepare-partition-downscale" "http://pod/ingester/prepare-instance-ring-downscale" $ingestStorageEnabled)
+  "minTimeBetweenZonesDownscale" (ternary "0" ($componentSection.zoneAwareReplication.minTimeBetweenZonesDownscale | default "") $delayedDownscaleEnabled)
   ) -}}
 {{- end -}}
 {{- if $componentSection.zoneAwareReplication.migration.enabled -}}

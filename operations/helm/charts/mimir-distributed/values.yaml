@@ -1110,8 +1110,13 @@ ingester:
     enabled: true
     # -- Maximum number of ingesters that can be unavailable per zone during rollout
     maxUnavailable: 50
-    # -- Minimum time for the rollout operator to wait between ingester zone down scales
+    # -- Minimum time for the rollout operator to wait between ingester zone down scales, ignored when delayedDownscale.enabled=true
     minTimeBetweenZonesDownscale: 12h
+    delayedDownscale:
+      # -- Enable delayed downscaling. A single primary-zone ReplicaTemplate controls replicas for all ingester zones; scale this resource instead of the StatefulSets. The rollout operator prepares partitions in ingest storage mode and ingester rings in classic mode before waiting for `delay`. The normal inter-zone downscale delay is disabled so all zones follow the same delay.
+      enabled: false
+      # -- Delay between setting a partition to read-only and downscaling its ingester StatefulSet.
+      delay: 13h
     # -- topologyKey to use in pod anti-affinity. If unset, no anti-affinity rules are generated. If set, the generated anti-affinity rule makes sure that pods from different zones do not mix.
     # E.g.: topologyKey: 'kubernetes.io/hostname'
     topologyKey: null

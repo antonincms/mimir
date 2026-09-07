@@ -13,7 +13,7 @@ metadata:
     {{- if (eq $rolloutZone.noDownscale true )}}
     grafana.com/no-downscale: {{ $rolloutZone.noDownscale | quote }}
     {{- else }}
-    {{- if (eq $rolloutZone.prepareDownscale true )}}
+    {{- if (eq $rolloutZone.prepareDownscale true) }}
     grafana.com/prepare-downscale: {{ $rolloutZone.prepareDownscale | quote }}
     grafana.com/min-time-between-zones-downscale: {{ $rolloutZone.minTimeBetweenZonesDownscale }}
     {{- end }}
@@ -23,6 +23,18 @@ metadata:
     {{- if $rolloutZone.prepareDownscale }}
     grafana.com/prepare-downscale-http-path: ingester/prepare-shutdown
     grafana.com/prepare-downscale-http-port: {{ include "mimir.serverHttpListenPort" . | quote }}
+    {{- end -}}
+    {{- if $rolloutZone.delayedDownscale }}
+    grafana.com/rollout-delayed-downscale: {{ $rolloutZone.delayedDownscaleDelay | quote }}
+    grafana.com/rollout-prepare-delayed-downscale-url: {{ $rolloutZone.delayedDownscalePrepareURL }}
+    {{- end -}}
+    {{- if $rolloutZone.delayedDownscaleMirrorsReplicas }}
+    grafana.com/rollout-mirror-replicas-from-resource-name: {{ $rolloutZone.delayedDownscaleReplicaTemplateName }}
+    grafana.com/rollout-mirror-replicas-from-resource-kind: ReplicaTemplate
+    grafana.com/rollout-mirror-replicas-from-resource-api-version: rollout-operator.grafana.com/v1
+    {{- end -}}
+    {{- if $rolloutZone.delayedDownscaleDisableWriteBack }}
+    grafana.com/rollout-mirror-replicas-from-resource-write-back: "false"
     {{- end -}}
     {{- if $rolloutZone.downscaleLeader }}
     grafana.com/rollout-downscale-leader: {{ $rolloutZone.downscaleLeader }}
